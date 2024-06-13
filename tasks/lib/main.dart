@@ -1,5 +1,4 @@
-import 'dart:ffi';
-
+import 'createNewTask.dart';
 import 'jsonControl.dart';
 import 'settings.dart';
 import 'package:flutter/widgets.dart';
@@ -24,7 +23,8 @@ class test extends StatefulWidget{
 }
 class _test extends State<test>{
   var _=Language.translate;
-  Map<String,dynamic> tasks={};
+  TextEditingController AchieveNumberControler=TextEditingController();
+  Map<String,dynamic> tasks={"date":"","points":0,"tasks":[],"gifts":[]};
   String date="";
   int doneTasks=0;
   _test();
@@ -34,9 +34,15 @@ class _test extends State<test>{
   }
   Future <void> loadTasks()async{
     tasks=await get();
+        for (var task in tasks["tasks"]){
+      if (task["type"] == 1){
+        doneTasks+=1;
+      }
+    }
+
     DateTime now=DateTime.now();
     date="${now.year}/${now.month}/${now.day}";
-    if (tasks["date"]??""!=date){
+    if (tasks["date"] !=date){
       tasks["date"]=date;
       tasks["points"]=0;
       for (var task in tasks["tasks"]){
@@ -44,11 +50,7 @@ class _test extends State<test>{
       }
       save(tasks);
     }
-    for (var task in tasks["tasks"]){
-      if (task["type"]??0==1){
-        doneTasks+=1;
-      }
-    }
+
     setState(() {
       
     });
@@ -110,6 +112,103 @@ class _test extends State<test>{
           ListTile(title: Text(_("date:") + date),),
           ListTile(title:Text(_("points") + tasks["points"].toString()) ,),
           ListTile(title: Text(_("you ended") + doneTasks.toString() + _(" tasks from") + tasks["tasks"].length.toString() + _("tasks")),),
+          ElevatedButton(onPressed: () async{
+            await Navigator.push(context, MaterialPageRoute(builder: (context)=>CreateNewTask(tasks)));
+            setState(() {
+              
+            });
+          }, child: Text(_("add new task"))),
+          if (tasks["tasks"].isEmpty)
+            ListTile(title:Text(_("no tasks!"))),
+          for (var task in tasks["tasks"]) ...[
+          ListTile(title:Text(task["name"]),
+          onLongPress: () async{
+            await showDialog(context: context, builder: (BuildContext context){
+              return AlertDialog(
+                title: Text(_("delete task")),
+                content: Center(
+                  child: Column(
+                    children: [
+                      Text(_("would you like to delete this task")),
+                      ElevatedButton(onPressed: (){
+                              tasks["points"]-=task["count"]*task["points"];
+                              tasks["tasks"].remove(task);
+            save(tasks);
+            Navigator.pop(context);
+                      }, child: Text(_("delete")))
+
+                    ],
+                  ),
+                ),
+              );
+            });
+            setState(() {
+              
+            });
+          },),
+          if (task["type"]==1)
+          ListTile(title:Text(_("you made  ") + task["count"].toString() + _(" from it")) ,)
+          else if(task["type"]==2)
+          ListTile(title:Text(_("you don't made it")), )
+          else if(task["type"]==0)
+          Column(
+            children: [
+          ListTile(title: Text(_("i made it")),
+          onTap: () async{
+
+            await showDialog(context: context, builder: (BuildContext context){
+              return AlertDialog(
+                title: Text(_("are you end this task?")),
+                content: Center(
+                  child: Column(
+                    children: [
+                    ListTile(title:Text(_("how do you achieve ?"))),
+                    TextFormField(controller: AchieveNumberControler,keyboardType: TextInputType.number),
+                    ElevatedButton(onPressed: (){
+                      tasks["tasks"].remove(task);
+                      task["type"]=1;
+                      int Count=int.parse(AchieveNumberControler.text)??1;
+                      task["count"]=Count;
+                      tasks["points"]+=Count*task["points"];
+                      tasks["tasks"].add(task);
+                      save(tasks);
+                      Navigator.pop(context);
+
+                    }, child: Text(_("done")))
+                    ],
+                  ),
+                ),
+              );
+            });
+            setState(() {
+              
+            });
+          },),
+          ListTile(title: Text(_("you didn't make it"))
+          ,onTap: () async{
+            await showDialog(context: context, builder: (BuildContext context){
+              return AlertDialog(
+                title: Text(_("are you sure?")),
+                content: Center(
+                  child: ElevatedButton(child: Text(_("yeah")),
+                    onPressed: (){
+                      tasks["tasks"].remove(task);
+                      task["type"]=2;
+                      tasks["tasks"].add(task);
+                      save(tasks);
+                      Navigator.pop(context);
+                    },
+
+                  ),
+                ),
+              );
+            });
+            setState(() {
+              
+            });
+          },)
+            ])
+          ],
     ])),)));
   }
 }

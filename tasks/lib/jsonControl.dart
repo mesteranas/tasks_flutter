@@ -11,7 +11,7 @@ Future<Map<String, dynamic>> get() async {
     Map<String,dynamic> dartData = jsonDecode(data);
     return dartData;
   } else {
-    return {"date":"","points":0,"tasks":[]};
+    return {"date":"","points":0,"tasks":[],"gifts":[]};
   }
 }
 
