@@ -1,3 +1,4 @@
+import 'giftsDialog.dart';
 import 'createNewTask.dart';
 import 'jsonControl.dart';
 import 'settings.dart';
@@ -33,6 +34,7 @@ class _test extends State<test>{
     loadTasks();
   }
   Future <void> loadTasks()async{
+    doneTasks=0;
     tasks=await get();
         for (var task in tasks["tasks"]){
       if (task["type"] == 1){
@@ -45,9 +47,17 @@ class _test extends State<test>{
     if (tasks["date"] !=date){
       tasks["date"]=date;
       tasks["points"]=0;
-      for (var task in tasks["tasks"]){
-        task["type"]=0;
+      for(var gift in tasks["gifts"]){
+        tasks["gifts"].remove(gift);
+        gift["pought"]=false;
+        tasks["gifts"].add(gift);
       }
+      for (var task in tasks["tasks"]){
+        tasks["tasks"].remove(task);
+        task["type"]=0;
+        tasks["tasks"].add(task);
+      }
+
       save(tasks);
     }
 
@@ -109,6 +119,13 @@ class _test extends State<test>{
         ],) ,),
         body:Container(alignment: Alignment.center
         ,child: Column(children: [
+          ElevatedButton(onPressed: () async{
+            await Navigator.push(context, MaterialPageRoute(builder: (context)=>GiftsDialog(tasks: tasks,)));
+            setState(() {
+              
+            });
+
+          }, child: Text(_("gifts"))),
           ListTile(title: Text(_("date:") + date),),
           ListTile(title:Text(_("points") + tasks["points"].toString()) ,),
           ListTile(title: Text(_("you ended") + doneTasks.toString() + _(" tasks from") + tasks["tasks"].length.toString() + _("tasks")),),
